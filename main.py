@@ -1,3 +1,4 @@
+import argparse
 import os
 
 from src.converter import matrix_to_decoded_matrix
@@ -19,6 +20,24 @@ def pgm_to_ppm(pgm_path: str, ppm_path: str):
 
 
 def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", help="path of the file to execute the pipeline")
+    parser.add_argument("--out", help="path of the output file if --input is not None")
+    args = parser.parse_args()
+
+    if args.input:
+        pgm_path = args.input
+        if args.out:
+            ppm_path = args.out
+        else:
+            ppm_path = pgm_path.replace("encoded_images", "decoded_images").replace(
+                ".pgm", ".ppm"
+            )
+        os.makedirs(os.path.dirname(ppm_path), exist_ok=True)
+
+        pgm_to_ppm(pgm_path, ppm_path)
+        return
 
     for directory in DIRECTORIES:
         dir = os.fsencode(f"{ENCODED_IMAGES_DIR}/{directory}")
