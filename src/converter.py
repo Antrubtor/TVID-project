@@ -1,17 +1,3 @@
-def pgm_to_matrix(path):
-    with open(path, mode="rb") as f:
-        f.readline()
-        line = f.readline().split()
-        width, height = int(line[0]), int(line[1])
-        lines = f.read()
-
-    matrix = [[0] * width for _ in range(height)]
-    for y in range(height):
-        for x in range(width):
-            matrix[y][x] = int(lines[y * width + x])
-    return matrix
-
-
 def clamp(v):
     return max(0, min(255, round(v)))
 
