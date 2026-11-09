@@ -4,6 +4,10 @@ if [ ! -d "videos" ]; then
     rm videos.zip
 fi
 
+if [ ! -d ".venv" ]; then
+    uv sync
+fi
+
 if [ ! -d "mpeg2dec" ]; then
     git clone git@github.com:aholtzma/mpeg2dec.git
     cd mpeg2dec
