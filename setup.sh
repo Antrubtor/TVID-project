@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 set -eou pipefail
 
 if [ ! -d "videos" ]; then
