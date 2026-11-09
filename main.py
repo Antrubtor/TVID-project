@@ -1,5 +1,7 @@
-from src.decoded_matrix_to_ppm import decoded_matrix_to_ppm, os
-from src.pgm_to_decoded_matrix import matrix_to_decoded_matrix, pgm_to_matrix
+import os
+
+from src.converter import matrix_to_decoded_matrix
+from src.image import matrix_to_ppm, pgm_to_matrix
 
 
 def main():
@@ -10,9 +12,11 @@ def main():
             filename = os.fsdecode(file)
             path = f"encoded_images/{directory}/{filename}"
             f_path = f"decoded_images/{directory}/{filename}"
+            os.makedirs(os.path.dirname(f_path), exist_ok=True)
+
             matrix = pgm_to_matrix(path)
             decoded_matrix = matrix_to_decoded_matrix(matrix)
-            decoded_matrix_to_ppm(f_path, decoded_matrix)
+            matrix_to_ppm(f_path, decoded_matrix)
             print(path)
 
 
