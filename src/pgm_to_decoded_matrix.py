@@ -12,6 +12,10 @@ def pgm_to_matrix(path):
     return matrix
 
 
+def clamp(v):
+    return max(0, min(255, round(v)))
+
+
 def yuv_to_rgb(y, u, v):
     y -= 16
     u -= 128
@@ -21,10 +25,6 @@ def yuv_to_rgb(y, u, v):
     g = 1.164 * y - 0.392 * u - 0.813 * v
     b = 1.164 * y + 2.017 * u
     return clamp(r), clamp(g), clamp(b)
-
-
-def clamp(v):
-    return max(0, min(255, round(v)))
 
 
 def matrix_to_decoded_matrix(matrix):
