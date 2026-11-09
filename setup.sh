@@ -1,3 +1,5 @@
+set -eou pipefail
+
 if [ ! -d "videos" ]; then
     wget -c -O videos.zip "https://nc.cyberdra.net/s/o2XGqepknKDemrs/download?path=%2FTP%2Fvideos"
     unzip videos.zip
@@ -12,10 +14,14 @@ if [ ! -d "mpeg2dec" ]; then
     git clone git@github.com:aholtzma/mpeg2dec.git
     ./apply_patch.sh
     cd mpeg2dec
-    ./configure
-    if [ "$OSTYPE" != "darwin"* ]; then
-        sed -i "s/#define inline __attribute__ ((__always_inline__))/\/\/#define inline \_\_attribute\_\_ \(\(\_\_always_inline\_\_\)\)/g" include/config.h # pour compiler sur mac
+
+    if [ "$(uname)" = "Darwin" ]; then
+        ac_cv_build=aarch64-apple-darwin ac_cv_host=aarch64-apple-darwin ./configure --disable-sdl --without-x
+        sed -i.bak "s/#define inline __attribute__ ((__always_inline__))/\/\/#define inline \_\_attribute\_\_ \(\(\_\_always_inline\_\_\)\)/g" include/config.h # pour compiler sur mac
+    else
+        ./configure
     fi
+
     make -j$(nproc)
     cd ..
 fi

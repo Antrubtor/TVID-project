@@ -1,6 +1,6 @@
 def pgm_to_matrix(path):
     f = open(path, mode="rb")
-    type = f.readline().split()[0] # P5, mais inutile
+    type = f.readline().split()[0]  # P5, mais inutile
     line = f.readline().split()
     width, height = int(line[0]), int(line[1])
     max_value = int(f.readline().split()[0])
@@ -14,8 +14,10 @@ def pgm_to_matrix(path):
             matrix[y][x] = int(lines[y * width + x])
     return matrix, max_value
 
+
 def clamp(v, max_value):
     return max(0, min(max_value, round(v)))
+
 
 def matrix_to_decoded_matrix(matrix, max_value):
     width, height = len(matrix[0]), len(matrix)
@@ -29,5 +31,9 @@ def matrix_to_decoded_matrix(matrix, max_value):
             R = 1.164 * Y + 1.596 * V
             G = 1.164 * Y - 0.392 * U - 0.813 * V
             B = 1.164 * Y + 2.017 * U
-            f_matrix[y][x] = (clamp(R, max_value), clamp(G, max_value), clamp(B, max_value))
+            f_matrix[y][x] = (
+                clamp(R, max_value),
+                clamp(G, max_value),
+                clamp(B, max_value),
+            )
     return f_matrix
