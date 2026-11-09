@@ -1,6 +1,9 @@
 import argparse
 import os
 
+import cv2
+import numpy as np
+
 from src.converter import matrix_to_decoded_matrix
 from src.image import matrix_to_ppm, pgm_to_matrix
 
@@ -11,32 +14,30 @@ DECODED_IMAGES_DIR = "decoded_images"
 DIRECTORIES = ["bw_numbers", "Jaggies1", "lci", "pendulum"]
 
 
-def pgm_to_ppm(pgm_path: str, ppm_path: str):
-    os.makedirs(os.path.dirname(ppm_path), exist_ok=True)
-
-    matrix = pgm_to_matrix(pgm_path)
-    decoded_matrix = matrix_to_decoded_matrix(matrix)
-    matrix_to_ppm(ppm_path, decoded_matrix)
-
-
 def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", help="path of the file to execute the pipeline")
-    parser.add_argument("--out", help="path of the output file if --input is not None")
+    parser.add_argument(
+        "--out", help="path of the output file, if None, then result is displayed"
+    )
     args = parser.parse_args()
 
     if args.input:
         pgm_path = args.input
-        if args.out:
-            ppm_path = args.out
-        else:
-            ppm_path = pgm_path.replace("encoded_images", "decoded_images").replace(
-                ".pgm", ".ppm"
-            )
-        os.makedirs(os.path.dirname(ppm_path), exist_ok=True)
+        ppm_path = args.out
 
-        pgm_to_ppm(pgm_path, ppm_path)
+        matrix = pgm_to_matrix(pgm_path)
+        decoded_matrix = matrix_to_decoded_matrix(matrix)
+
+        if ppm_path:
+            os.makedirs(os.path.dirname(ppm_path), exist_ok=True)
+            matrix_to_ppm(ppm_path, decoded_matrix)
+        else:
+            img = np.array(decoded_matrix, np.uint8)
+            cv2.imshow("ppm", img)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
         return
 
     for directory in DIRECTORIES:
@@ -51,9 +52,12 @@ def main():
             ppm_path = f"{DECODED_IMAGES_DIR}/{directory}/{filename}".replace(
                 ".pgm", ".ppm"
             )
-            os.makedirs(os.path.dirname(ppm_path), exist_ok=True)
             print(f"{pgm_path} -> {ppm_path}")
-            pgm_to_ppm(pgm_path, ppm_path)
+            os.makedirs(os.path.dirname(ppm_path), exist_ok=True)
+
+            matrix = pgm_to_matrix(pgm_path)
+            decoded_matrix = matrix_to_decoded_matrix(matrix)
+            matrix_to_ppm(ppm_path, decoded_matrix)
 
 
 if __name__ == "__main__":
