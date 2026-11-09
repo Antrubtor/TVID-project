@@ -10,6 +10,7 @@ fi
 
 if [ ! -d "mpeg2dec" ]; then
     git clone git@github.com:aholtzma/mpeg2dec.git
+    ./apply_patch.sh
     cd mpeg2dec
     ./configure
     if [ "$OSTYPE" != "darwin"* ]; then

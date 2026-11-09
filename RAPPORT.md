@@ -5,9 +5,11 @@
 - [noah.civilise](https://cri.epita.fr/users/noah.civilise/)
 - [antoine.mosimann](https://cri.epita.fr/users/antoine.mosimann/)
 
-## Setup:
-Pour setup le projet il suffit de lancer `setup.sh`, celui-ci télécharge les vidéos ainsi que clone le repository de mpeg2dec, le compile et génères les pgm en utilisant son exécutable.
-Inversement `cleanup.sh` remet le dossier dans son état initial.
+## Instructions:
+* `setup.sh` permet de télécharger les vidéos, clone le repository de mpeg2dec, appliquer le patch, compiler et générer les pgm en utilisant l'exécutable crée
+* `cleanup.sh` permet de remettre le dossier dans son état initial
+* `generate_patch.sh` permet de créer le fichier `mpeg2dec.patch` qui contient toutes les modifications faites sur le repository de mpeg2dec
+* `apply_patch.sh` permet d'appliquer le patch crée (donc d'appliquer toutes les modifications faites)
 
 ## Questions:
 

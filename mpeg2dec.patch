@@ -1,0 +1,24 @@
+diff --git a/.clang-format b/.clang-format
+new file mode 100644
+index 0000000..47a38a9
+--- /dev/null
++++ b/.clang-format
+@@ -0,0 +1,2 @@
++DisableFormat: true
++SortIncludes: Never
+diff --git a/.clangd b/.clangd
+new file mode 100644
+index 0000000..3d048b8
+--- /dev/null
++++ b/.clangd
+@@ -0,0 +1,10 @@
++CompileFlags:
++  Add:
++    - -DHAVE_CONFIG_H
++    - -I../include
++    - -I../../include
++    - -I..
++
++Diagnostics:
++  UnusedIncludes: None
++  MissingIncludes: None
