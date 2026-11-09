@@ -10,6 +10,8 @@ def main():
         dir = os.fsencode(f"encoded_images/{directory}")
         for file in os.listdir(dir):
             filename = os.fsdecode(file)
+            if not filename.endswith(".pgm"):
+                continue
             path = f"encoded_images/{directory}/{filename}"
             f_path = f"decoded_images/{directory}/{filename}"
             os.makedirs(os.path.dirname(f_path), exist_ok=True)
