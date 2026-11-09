@@ -3,3 +3,4 @@ decoded_images/
 mpeg2dec/
 videos/
 .venv/
+__pycache__
