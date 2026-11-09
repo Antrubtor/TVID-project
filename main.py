@@ -10,8 +10,8 @@ def main():
             filename = os.fsdecode(file)
             path = f"encoded_images/{directory}/{filename}"
             f_path = f"decoded_images/{directory}/{filename}"
-            matrix, max_value = pgm_to_matrix(path)
-            decoded_matrix = matrix_to_decoded_matrix(matrix, max_value)
+            matrix = pgm_to_matrix(path)
+            decoded_matrix = matrix_to_decoded_matrix(matrix)
             decoded_matrix_to_ppm(f_path, decoded_matrix)
             print(path)
 

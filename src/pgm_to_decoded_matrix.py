@@ -1,39 +1,41 @@
 def pgm_to_matrix(path):
-    f = open(path, mode="rb")
-    type = f.readline().split()[0]  # P5, mais inutile
-    line = f.readline().split()
-    width, height = int(line[0]), int(line[1])
-    max_value = int(f.readline().split()[0])
+    with open(path, mode="rb") as f:
+        f.readline()
+        line = f.readline().split()
+        width, height = int(line[0]), int(line[1])
+        lines = f.read()
 
-    lines = f.read()
-    f.close()
-
-    matrix = [[0] * width for i in range(height)]
+    matrix = [[0] * width for _ in range(height)]
     for y in range(height):
         for x in range(width):
             matrix[y][x] = int(lines[y * width + x])
-    return matrix, max_value
+    return matrix
 
 
-def clamp(v, max_value):
-    return max(0, min(max_value, round(v)))
+def yuv_to_rgb(y, u, v):
+    y -= 16
+    u -= 128
+    v -= 128
+
+    r = 1.164 * y + 1.596 * v
+    g = 1.164 * y - 0.392 * u - 0.813 * v
+    b = 1.164 * y + 2.017 * u
+    return clamp(r), clamp(g), clamp(b)
 
 
-def matrix_to_decoded_matrix(matrix, max_value):
+def clamp(v):
+    return max(0, min(255, round(v)))
+
+
+def matrix_to_decoded_matrix(matrix):
     width, height = len(matrix[0]), len(matrix)
     f_width, f_height = width, height - height // 3
-    f_matrix = [[(-1, -1, -1)] * f_width for i in range(f_height)]
+    f_matrix = [[(-1, -1, -1)] * f_width for _ in range(f_height)]
     for y in range(f_height):
         for x in range(f_width):
-            Y = matrix[y][x] - 16
-            U = matrix[f_height + y // 2][x // 2] - 128
-            V = matrix[f_height + y // 2][f_width // 2 + x // 2] - 128
-            R = 1.164 * Y + 1.596 * V
-            G = 1.164 * Y - 0.392 * U - 0.813 * V
-            B = 1.164 * Y + 2.017 * U
-            f_matrix[y][x] = (
-                clamp(R, max_value),
-                clamp(G, max_value),
-                clamp(B, max_value),
+            f_matrix[y][x] = yuv_to_rgb(
+                matrix[y][x],
+                matrix[f_height + y // 2][x // 2],
+                matrix[f_height + y // 2][f_width // 2 + x // 2],
             )
     return f_matrix
