@@ -8,21 +8,24 @@ import numpy as np
 from src.converter import matrix_to_decoded_matrix
 from src.image import matrix_to_ppm, pgm_to_matrix
 
-FRAME_DELAY_MS = 40  # for 25 fps but isn't that fast for know
-
 
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", help="path of the directory to execute the pipeline")
+    parser.add_argument(
+        "input", type=str, help="path of the directory to execute the pipeline"
+    )
     parser.add_argument(
         "--out",
+        type=str,
         help="path of the output directory, if None, then result is only displayed",
     )
+    parser.add_argument("--pace", type=int, help="give the wanted pace", default=25)
     args = parser.parse_args()
 
     pgm_path_dir = Path(args.input)
     ppm_path_dir = args.out
+    frame_delay_ms = 1000 // args.pace
 
     if ppm_path_dir:
         os.makedirs(ppm_path_dir, exist_ok=True)
@@ -38,7 +41,7 @@ def main():
         else:
             img = np.array(decoded_matrix, np.uint8)
             cv2.imshow("ppm", img)
-            key = cv2.waitKey(FRAME_DELAY_MS)
+            key = cv2.waitKey(frame_delay_ms)
             if key == ord("q"):
                 break
 
