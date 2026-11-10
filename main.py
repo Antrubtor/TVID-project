@@ -9,9 +9,10 @@ import pandas as pd
 from src.converter import matrix_to_decoded_matrix
 from src.image import matrix_to_ppm, pgm_to_matrix
 
+DEFAULT_PACE = 25
 
-def main():
 
+def get_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "input", type=str, help="path of the directory to execute the pipeline"
@@ -22,18 +23,23 @@ def main():
         help="path of the output directory, if None, then result is only displayed",
     )
     parser.add_argument("--pace", type=int, help="give the wanted pace")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+
+    args = get_arguments()
 
     pgm_path_dir = Path(args.input)
-    ppm_path_dir = args.out
+    ppm_path_dir = Path(args.out) if args.out else None
     logs_file = Path.joinpath(pgm_path_dir, "logs.csv")
-
-    frame_delay_ms = 1000 // args.pace if args.pace else -1
+    pace = args.pace if args.pace is not None and args.pace > 0 else None
+    frame_delay_ms = 1000 / pace if pace is not None else None
 
     if ppm_path_dir:
         os.makedirs(ppm_path_dir, exist_ok=True)
 
-    df = pd.read_csv(logs_file, sep=";")
+    df = pd.read_csv(logs_file, sep=";") if logs_file.exists() else None
     for pgm_path in sorted(pgm_path_dir.glob("*.pgm"), key=lambda p: int(p.stem)):
         print(f"Processing {pgm_path}...")
         i = int(pgm_path.stem)
@@ -49,10 +55,12 @@ def main():
             cv2.imshow("ppm", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
             frame_delay_ms = int(
                 frame_delay_ms
-                if frame_delay_ms != -1
+                if pace and frame_delay_ms is not None
                 else 27e6 / df.iloc[i]["frame_period"]
+                if df is not None and df.iloc[i]["frame_period"] > 0
+                else 1000 / DEFAULT_PACE
             )
-            print(f"Frame delay: {frame_delay_ms} ms")
+
             key = cv2.waitKey(frame_delay_ms)
             if key == ord("q"):
                 break
