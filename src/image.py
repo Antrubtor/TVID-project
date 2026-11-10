@@ -3,6 +3,7 @@ def pgm_to_matrix(path):
         f.readline()
         line = f.readline().split()
         width, height = int(line[0]), int(line[1])
+        f.readline()
         lines = f.read()
 
     matrix = [[0] * width for _ in range(height)]
