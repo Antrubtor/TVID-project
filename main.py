@@ -26,6 +26,15 @@ def get_arguments():
     return parser.parse_args()
 
 
+def frame_delay_ms(pace, df, i):
+    if pace and pace > 0:
+        return int(1000 / pace)
+    elif df is not None and df.iloc[i]["frame_period"] > 0:
+        return int(df.iloc[i]["frame_period"] * 1000 / 27e6)
+    else:
+        return int(1000 / DEFAULT_PACE)
+
+
 def main():
 
     args = get_arguments()
@@ -33,8 +42,7 @@ def main():
     pgm_path_dir = Path(args.input)
     ppm_path_dir = Path(args.out) if args.out else None
     logs_file = Path.joinpath(pgm_path_dir, "logs.csv")
-    pace = args.pace if args.pace is not None and args.pace > 0 else None
-    frame_delay_ms = 1000 / pace if pace is not None else None
+    pace = args.pace
 
     if ppm_path_dir:
         os.makedirs(ppm_path_dir, exist_ok=True)
@@ -53,15 +61,7 @@ def main():
         else:
             img = np.array(decoded_matrix, np.uint8)
             cv2.imshow("ppm", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-            frame_delay_ms = int(
-                frame_delay_ms
-                if pace and frame_delay_ms is not None
-                else df.iloc[i]["frame_period"] * 1000 / 27e6
-                if df is not None and df.iloc[i]["frame_period"] > 0
-                else 1000 / DEFAULT_PACE
-            )
-
-            key = cv2.waitKey(frame_delay_ms)
+            key = cv2.waitKey(frame_delay_ms(pace, df, i))
             if key == ord("q"):
                 break
 
