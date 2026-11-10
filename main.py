@@ -56,7 +56,7 @@ def main():
             frame_delay_ms = int(
                 frame_delay_ms
                 if pace and frame_delay_ms is not None
-                else 27e6 / df.iloc[i]["frame_period"]
+                else df.iloc[i]["frame_period"] * 1000 / 27e6
                 if df is not None and df.iloc[i]["frame_period"] > 0
                 else 1000 / DEFAULT_PACE
             )
