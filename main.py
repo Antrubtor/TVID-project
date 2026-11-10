@@ -8,6 +8,8 @@ import numpy as np
 from src.converter import matrix_to_decoded_matrix
 from src.image import matrix_to_ppm, pgm_to_matrix
 
+FRAME_DELAY_MS = 40  # for 25 fps but isn't that fast for know
+
 
 def main():
 
@@ -36,8 +38,11 @@ def main():
         else:
             img = np.array(decoded_matrix, np.uint8)
             cv2.imshow("ppm", img)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            key = cv2.waitKey(FRAME_DELAY_MS)
+            if key == ord("q"):
+                break
+
+    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
