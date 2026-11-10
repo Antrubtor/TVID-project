@@ -46,7 +46,7 @@ def main():
             matrix_to_ppm(ppm_path, decoded_matrix)
         else:
             img = np.array(decoded_matrix, np.uint8)
-            cv2.imshow("ppm", img)
+            cv2.imshow("ppm", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
             frame_delay_ms = int(
                 frame_delay_ms
                 if frame_delay_ms != -1
