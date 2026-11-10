@@ -23,7 +23,7 @@ index 0000000..3d048b8
 +  UnusedIncludes: None
 +  MissingIncludes: None
 diff --git a/src/mpeg2dec.c b/src/mpeg2dec.c
-index 59b36d7..b496370 100644
+index 59b36d7..a7d1d1a 100644
 --- a/src/mpeg2dec.c
 +++ b/src/mpeg2dec.c
 @@ -44,6 +44,7 @@
@@ -34,24 +34,25 @@ index 59b36d7..b496370 100644
  static int demux_track = 0;
  static int demux_pid = 0;
  static int demux_pva = 0;
-@@ -340,6 +341,16 @@ static void decode_mpeg2 (uint8_t * current, uint8_t * end)
+@@ -340,6 +341,17 @@ static void decode_mpeg2 (uint8_t * current, uint8_t * end)
  	    /* draw current picture */
  	    /* might free frame buffer */
  	    if (info->display_fbuf) {
 +                if (!log_file)
 +                {
 +                    log_file = fopen("logs.csv", "w");
-+                    fprintf(log_file, "progressive_frame;top_field_first;repeat_first_field\n");
++                    fprintf(log_file, "progressive_frame;top_field_first;repeat_first_field;frame_period\n");
 +                }
 +                int progressive_frame = (info->display_picture->flags & PIC_FLAG_PROGRESSIVE_FRAME) != 0 ? 1 : 0;
 +                int top_field_first = (info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) != 0 ? 1 : 0;
 +                int repeat_first_field = (info->display_picture->flags & PIC_FLAG_REPEAT_FIRST_FIELD) != 0 ? 1 : 0;
-+                fprintf(log_file, "%i;%i;%i\n", progressive_frame, top_field_first, repeat_first_field);
-+
++                int frame_period = info->sequence->frame_period;
++                fprintf(log_file, "%i;%i;%i;%i\n", progressive_frame, top_field_first, repeat_first_field, frame_period);
++				
  		if (output->draw)
  		    output->draw (output, info->display_fbuf->buf,
  				  info->display_fbuf->id);
-@@ -791,6 +802,8 @@ int main (int argc, char ** argv)
+@@ -791,6 +803,8 @@ int main (int argc, char ** argv)
      else
  	es_loop ();
  
