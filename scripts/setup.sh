@@ -2,6 +2,9 @@
 
 set -eou pipefail
 
+cd "$(dirname "$0")"
+cd ..
+
 if [ ! -d "videos" ]; then
     wget -c -O videos.zip "https://nc.cyberdra.net/s/o2XGqepknKDemrs/download?path=%2FTP%2Fvideos"
     unzip videos.zip
@@ -14,7 +17,7 @@ fi
 
 if [ ! -d "mpeg2dec" ]; then
     git clone git@github.com:aholtzma/mpeg2dec.git
-    ./apply_patch.sh
+    ./scripts/apply_patch.sh
     cd mpeg2dec
 
     if [ "$(uname)" = "Darwin" ]; then
