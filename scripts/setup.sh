@@ -35,7 +35,7 @@ if [ -d "encoded_images" ]; then
     rm -rf encoded_images
 fi
 
-mkdir -p encoded_images/bw_numbers encoded_images/Jaggies1 encoded_images/lci encoded_images/pendulum
+mkdir -p encoded_images/bw_numbers encoded_images/Jaggies1 encoded_images/lci encoded_images/pendulum encoded_images/cnn encoded_images/ctv1 encoded_images/ctv2 encoded_images/ctv3
 cd encoded_images/bw_numbers
 ../../mpeg2dec/src/mpeg2dec -o pgm ../../videos/elementary/bw_numbers.m2v
 cd ../../encoded_images/Jaggies1
@@ -44,3 +44,12 @@ cd ../../encoded_images/lci
 ../../mpeg2dec/src/mpeg2dec -o pgm ../../videos/elementary/lci.m2v
 cd ../../encoded_images/pendulum
 ../../mpeg2dec/src/mpeg2dec -o pgm ../../videos/elementary/pendulum.m2v
+
+cd ../../encoded_images/cnn
+../../mpeg2dec/src/mpeg2dec -t 0x1422 -o pgm ../../videos/ts/cnn.ts
+cd ../../encoded_images/ctv1
+../../mpeg2dec/src/mpeg2dec -t 0x3e9 -o pgm ../../videos/ts/ctv.ts
+cd ../../encoded_images/ctv2
+../../mpeg2dec/src/mpeg2dec -t 0x3f3 -o pgm ../../videos/ts/ctv.ts
+cd ../../encoded_images/ctv3
+../../mpeg2dec/src/mpeg2dec -t 0x3fd -o pgm ../../videos/ts/ctv.ts
