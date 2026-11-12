@@ -5,12 +5,11 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pandas as pd
-
-from prototype.src.converter import (
+from src.converter import (
     matrix_to_decoded_matrix,
     matrix_to_decoded_multiple_matrices,
 )
-from prototype.src.image import matrix_to_ppm, pgm_to_matrix
+from src.image import matrix_to_ppm, pgm_to_matrix
 
 DEFAULT_PACE = 25
 
