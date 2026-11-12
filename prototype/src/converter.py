@@ -39,7 +39,7 @@ def matrix_to_decoded_matrix(matrix):
     return final_matrix
 
 
-def matrix_to_decoded_multiple_matrices(matrix):
+def matrix_to_deinterlace_matrices(matrix):
     width, height = len(matrix[0]), len(matrix)
     f_width, f_height = width, height - height // 3
     top_field_matrix = [[(-1, -1, -1)] * f_width for _ in range(f_height)]

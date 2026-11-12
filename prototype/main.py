@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 from pathlib import Path
 
 import cv2
@@ -7,7 +8,7 @@ import numpy as np
 import pandas as pd
 from src.converter import (
     matrix_to_decoded_matrix,
-    matrix_to_decoded_multiple_matrices,
+    matrix_to_deinterlace_matrices,
 )
 from src.image import matrix_to_ppm, pgm_to_matrix
 
@@ -26,37 +27,46 @@ def get_arguments():
     )
     parser.add_argument("--pace", type=int, help="give the wanted pace")
     parser.add_argument(
-        "--progressive_frame", type=int, help="give the wanted progressive_frame"
+        "--progressive_frame",
+        type=int,
+        choices=[0, 1],
+        help="give the wanted progressive_frame",
     )
     parser.add_argument(
-        "--top_field_first", type=int, help="give the wanted top_field_first"
+        "--top_field_first",
+        type=int,
+        choices=[0, 1],
+        help="give the wanted top_field_first",
     )
     parser.add_argument(
-        "--repeat_first_field", type=int, help="give the wanted repeat_first_field"
+        "--repeat_first_field",
+        type=int,
+        choices=[0, 1],
+        help="give the wanted repeat_first_field",
     )
     return parser.parse_args()
 
 
-def frame_delay_ms(pace, frame_period):
+# J'ai update de ms -> s car j'utilise time.perf_coutner qui est en s.
+def frame_duration_s(pace, frame_period):
     if pace and pace > 0:
-        return int(1000 / pace)
-    elif frame_period is not None and frame_period > 0:
-        return int(frame_period * 1000 / 27e6)
-    else:
-        return int(1000 / DEFAULT_PACE)
+        return 1 / pace
+    if frame_period is not None and frame_period > 0:
+        return frame_period / 27e6
+    return 1 / DEFAULT_PACE
 
 
-def save_or_display_ppm(ppm_path_dir, pgm_path, position, matrix, pace, frame_period):
+def save_or_display_ppm(ppm_path_dir, name, matrix, chrono):
     if ppm_path_dir:
-        ppm_path = os.path.join(ppm_path_dir, f"{pgm_path.stem}_{position}.ppm")
+        ppm_path = os.path.join(ppm_path_dir, f"{name}.ppm")
         matrix_to_ppm(ppm_path, matrix)
-    else:
-        img = np.array(matrix, np.uint8)
-        cv2.imshow("ppm", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-        key = cv2.waitKey(frame_delay_ms(pace, frame_period))
-        if key == ord("q"):
-            return True
-    return False
+        return False
+
+    img = np.array(matrix, np.uint8)
+    cv2.imshow("ppm", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    remaining_ms = round((chrono - time.perf_counter()) * 1000)
+    key = cv2.waitKey(max(1, remaining_ms))
+    return key == ord("q")
 
 
 def main():
@@ -76,6 +86,9 @@ def main():
         os.makedirs(ppm_path_dir, exist_ok=True)
 
     df = pd.read_csv(logs_file, sep=";") if logs_file.exists() else None
+
+    # https://www.geeksforgeeks.org/python/time-perf_counter-function-in-python/
+    chrono = time.perf_counter()
 
     for pgm_path in sorted(pgm_path_dir.glob("*.pgm"), key=lambda p: int(p.stem)):
         print(f"Processing {pgm_path}...")
@@ -102,79 +115,38 @@ def main():
             if df is not None and i < len(df)
             else 0
         )
-        frame_period = df.iloc[i]["frame_period"]  # type: ignore
+        frame_period = (
+            df.iloc[i]["frame_period"] if df is not None and i < len(df) else None
+        )
 
         matrix = pgm_to_matrix(pgm_path)
 
         if progressive_frame == 1:
             decoded_matrix = matrix_to_decoded_matrix(matrix)
-
-            if ppm_path_dir:
-                ppm_path = os.path.join(ppm_path_dir, f"{pgm_path.stem}.ppm")
-                matrix_to_ppm(ppm_path, decoded_matrix)
-            else:
-                img = np.array(decoded_matrix, np.uint8)
-                cv2.imshow("ppm", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-                key = cv2.waitKey(frame_delay_ms(pace, frame_period))
-                if key == ord("q"):
-                    break
+            images = [("", decoded_matrix)]
+            duration = frame_duration_s(pace, frame_period)
         else:
-            top_field_matrix, bot_field_matrix = matrix_to_decoded_multiple_matrices(
-                matrix
-            )
-
+            top_field_matrix, bot_field_matrix = matrix_to_deinterlace_matrices(matrix)
             if top_field_first:
-                save_or_display_ppm(
-                    ppm_path_dir,
-                    pgm_path,
-                    "first",
-                    top_field_matrix,
-                    pace,
-                    frame_period,
-                )
-                save_or_display_ppm(
-                    ppm_path_dir,
-                    pgm_path,
-                    "second",
-                    bot_field_matrix,
-                    pace,
-                    frame_period,
-                )
-                if repeat_first_field:
-                    save_or_display_ppm(
-                        ppm_path_dir,
-                        pgm_path,
-                        "third",
-                        top_field_matrix,
-                        pace,
-                        frame_period,
-                    )
+                first, second = top_field_matrix, bot_field_matrix
             else:
-                save_or_display_ppm(
-                    ppm_path_dir,
-                    pgm_path,
-                    "first",
-                    bot_field_matrix,
-                    pace,
-                    frame_period,
-                )
-                save_or_display_ppm(
-                    ppm_path_dir,
-                    pgm_path,
-                    "second",
-                    top_field_matrix,
-                    pace,
-                    frame_period,
-                )
-                if repeat_first_field:
-                    save_or_display_ppm(
-                        ppm_path_dir,
-                        pgm_path,
-                        "third",
-                        bot_field_matrix,
-                        pace,
-                        frame_period,
-                    )
+                first, second = bot_field_matrix, top_field_matrix
+
+            images = [("_first", first), ("_second", second)]
+            if repeat_first_field:
+                images.append(("_third", first))
+            duration = frame_duration_s(pace, frame_period) / 2
+
+        stop = False
+        for suffix, image in images:
+            chrono += duration
+            if save_or_display_ppm(
+                ppm_path_dir, f"{pgm_path.stem}{suffix}", image, chrono
+            ):
+                stop = True
+                break
+        if stop:
+            break
 
     cv2.destroyAllWindows()
 
