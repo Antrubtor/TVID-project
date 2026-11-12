@@ -83,18 +83,24 @@ def main():
 
         progressive_frame = (
             progressive_frame_input
-            if progressive_frame_input
-            else df.iloc[i]["progressive_frame"]  # type: ignore
+            if progressive_frame_input is not None
+            else df.iloc[i]["progressive_frame"]
+            if df is not None and i < len(df)
+            else 1
         )
         top_field_first = (
             top_field_first_input
-            if top_field_first_input
-            else df.iloc[i]["top_field_first"]  # type: ignore
+            if top_field_first_input is not None
+            else df.iloc[i]["top_field_first"]
+            if df is not None and i < len(df)
+            else 1
         )
         repeat_first_field = (
             repeat_first_field_input
-            if repeat_first_field_input
-            else df.iloc[i]["repeat_first_field"]  # type: ignore
+            if repeat_first_field_input is not None
+            else df.iloc[i]["repeat_first_field"]
+            if df is not None and i < len(df)
+            else 0
         )
         frame_period = df.iloc[i]["frame_period"]  # type: ignore
 
