@@ -26,13 +26,22 @@ def get_arguments():
     )
     parser.add_argument("--pace", type=int, help="give the wanted pace")
     parser.add_argument(
-        "--progressive_frame", type=int, help="give the wanted progressive_frame"
+        "--progressive_frame",
+        type=int,
+        choices=[0, 1],
+        help="give the wanted progressive_frame",
     )
     parser.add_argument(
-        "--top_field_first", type=int, help="give the wanted top_field_first"
+        "--top_field_first",
+        type=int,
+        choices=[0, 1],
+        help="give the wanted top_field_first",
     )
     parser.add_argument(
-        "--repeat_first_field", type=int, help="give the wanted repeat_first_field"
+        "--repeat_first_field",
+        type=int,
+        choices=[0, 1],
+        help="give the wanted repeat_first_field",
     )
     return parser.parse_args()
 
@@ -53,7 +62,7 @@ def save_or_display_ppm(ppm_path_dir, pgm_path, position, matrix, pace, frame_pe
     else:
         img = np.array(matrix, np.uint8)
         cv2.imshow("ppm", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-        key = cv2.waitKey(frame_delay_ms(pace, frame_period))
+        key = cv2.waitKey(frame_delay_ms(pace, frame_period) // 2)
         if key == ord("q"):
             return True
     return False
@@ -102,7 +111,9 @@ def main():
             if df is not None and i < len(df)
             else 0
         )
-        frame_period = df.iloc[i]["frame_period"]  # type: ignore
+        frame_period = (
+            df.iloc[i]["frame_period"] if df is not None and i < len(df) else None
+        )
 
         matrix = pgm_to_matrix(pgm_path)
 
@@ -124,57 +135,61 @@ def main():
             )
 
             if top_field_first:
-                save_or_display_ppm(
+                if save_or_display_ppm(
                     ppm_path_dir,
                     pgm_path,
                     "first",
                     top_field_matrix,
                     pace,
                     frame_period,
-                )
-                save_or_display_ppm(
+                ):
+                    break
+                if save_or_display_ppm(
                     ppm_path_dir,
                     pgm_path,
                     "second",
                     bot_field_matrix,
                     pace,
                     frame_period,
-                )
-                if repeat_first_field:
-                    save_or_display_ppm(
-                        ppm_path_dir,
-                        pgm_path,
-                        "third",
-                        top_field_matrix,
-                        pace,
-                        frame_period,
-                    )
+                ):
+                    break
+                if repeat_first_field and save_or_display_ppm(
+                    ppm_path_dir,
+                    pgm_path,
+                    "third",
+                    top_field_matrix,
+                    pace,
+                    frame_period,
+                ):
+                    break
             else:
-                save_or_display_ppm(
+                if save_or_display_ppm(
                     ppm_path_dir,
                     pgm_path,
                     "first",
                     bot_field_matrix,
                     pace,
                     frame_period,
-                )
-                save_or_display_ppm(
+                ):
+                    break
+                if save_or_display_ppm(
                     ppm_path_dir,
                     pgm_path,
                     "second",
                     top_field_matrix,
                     pace,
                     frame_period,
-                )
-                if repeat_first_field:
-                    save_or_display_ppm(
-                        ppm_path_dir,
-                        pgm_path,
-                        "third",
-                        bot_field_matrix,
-                        pace,
-                        frame_period,
-                    )
+                ):
+                    break
+                if repeat_first_field and save_or_display_ppm(
+                    ppm_path_dir,
+                    pgm_path,
+                    "third",
+                    bot_field_matrix,
+                    pace,
+                    frame_period,
+                ):
+                    break
 
     cv2.destroyAllWindows()
 
