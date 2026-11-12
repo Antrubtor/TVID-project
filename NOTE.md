@@ -27,7 +27,7 @@
     - Donc pour la ligne 0 de Luma, on regarde Y//2 = 0 de Chroma
     - Pour la ligne 2 de Luma, on regarde la même Chroma que pour la précédente (0)
     - Pour la ligne 4 de Luma, on regarde Y//2 = 2 de Chroma
-    - Pour la ligne 6 de Luma, on regarde la même Chroma que pour la précédente (4)
+    - Pour la ligne 6 de Luma, on regarde la même Chroma que pour la précédente (2)
     - etc...
     - Et c'est la même chose avec les lignes impaires pour le Bottom Field
 - Ensuite la colonne (top_field_first) dans les logs nous permet de savoir quelle frame mettre en 1ère ou en 2ème
