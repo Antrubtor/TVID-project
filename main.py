@@ -6,9 +6,9 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pandas as pd
+
 from src.converter import (
     matrix_to_decoded_matrix,
-    matrix_to_deinterlace_matrices,
 )
 from src.image import matrix_to_ppm, pgm_to_matrix
 
@@ -122,11 +122,11 @@ def main():
         matrix = pgm_to_matrix(pgm_path)
 
         if progressive_frame == 1:
-            decoded_matrix = matrix_to_decoded_matrix(matrix)
+            decoded_matrix = matrix_to_decoded_matrix(matrix, False)
             images = [("", decoded_matrix)]
             duration = frame_duration_s(pace, frame_period)
         else:
-            top_field_matrix, bot_field_matrix = matrix_to_deinterlace_matrices(matrix)
+            top_field_matrix, bot_field_matrix = matrix_to_decoded_matrix(matrix, True)
             if top_field_first:
                 first, second = top_field_matrix, bot_field_matrix
             else:
