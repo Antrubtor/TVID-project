@@ -55,5 +55,5 @@ cd ../../encoded_images/ctv3
 ../../mpeg2dec/src/mpeg2dec -t 0x3fd -o pgm ../../videos/ts/ctv.ts
 
 
-cd ../../prototype
+cd ../..
 uv sync
