@@ -36,9 +36,12 @@ BINAIRE # chaque pixel est codé par 1 ou 2 octets selon que la valeur maximale 
 ```
 Pour le sampling mode nous sommes en 4:2:0 (Y full res, U et V font la width/2)
 
-4)
+4) Quand progressive frame vaut:
+* 1: L'image est "plus nette", sauf que de temps en temps on a des lignes comme si le fichier disait qu'il ne fallait pas désentrelasser alors que si, donc un effet de peigne.
+* 0: L'image fait des sauts de haut en bas
 
-5)
+5) `progressive_frame` change sans logique entre 0 et 1 et `top_field_first` est toujours égal à 1
+Avec `vlc -V x11 --deinterlace-mode bob videos/ts/cnn.ts` on ne voit aucune différence entre les moments où `progressive_frame` est à 0 et 1, comme si elle était forcée à 0.
 
 6)
 
