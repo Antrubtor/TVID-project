@@ -7,10 +7,8 @@ import cv2
 import numpy as np
 import pandas as pd
 
-from src.converter import (
-    matrix_to_decoded_matrix,
-)
-from src.image import matrix_to_ppm, pgm_to_matrix
+from src.converter import matrix_to_decoded_matrix
+from src.image import read_pgm, write_ppm
 
 DEFAULT_PACE = 25
 
@@ -59,7 +57,7 @@ def frame_duration_s(pace, frame_period):
 def save_or_display_ppm(ppm_path_dir, name, matrix, chrono):
     if ppm_path_dir:
         ppm_path = os.path.join(ppm_path_dir, f"{name}.ppm")
-        matrix_to_ppm(ppm_path, matrix)
+        write_ppm(ppm_path, matrix)
         return False
 
     img = np.array(matrix, np.uint8)
@@ -119,7 +117,7 @@ def main():
             df.iloc[i]["frame_period"] if df is not None and i < len(df) else None
         )
 
-        matrix = pgm_to_matrix(pgm_path)
+        matrix = read_pgm(pgm_path)
 
         if progressive_frame == 1:
             decoded_matrix = matrix_to_decoded_matrix(matrix, False)
