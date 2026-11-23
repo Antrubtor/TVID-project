@@ -23,8 +23,7 @@ vlc -V xvideo videos/elementary/pendulum.m2v
 
 2) Notre `setup.sh` fait déjà cette étape.
 ```
-cd encoded_images/pendulum
-../../mpeg2dec/src/mpeg2dec -o pgm ../../videos/elementary/pendulum.m2v
+./mpeg2dec/src/mpeg2dec -o pgm videos/elementary/pendulum.m2v
 ```
 
 3) Voici le fichier `encoded_images/pendulum/0.pgm`
@@ -62,7 +61,7 @@ Input #0, mpegts, from 'cnn.ts':
       cpb: bitrate max/min/avg: 15000000/0/0 buffer size: 1835008 vbv_delay: N/A
   Stream #0:1[0x1423]: Audio: mp2 ([4][0][0][0] / 0x0004), 48000 Hz, stereo, fltp, 160 kb/s
 ```
-Le pid du flux vidéo est 0x1422
+Le pid du flux vidéo est `0x1422`
 
 2) Dans le fichier `scripts/setup.sh` on a rajouté les commandes pour décoder le flux vidéo en utilisant le pid, un exemple de commande:
 ```
@@ -122,9 +121,36 @@ Input #0, mpegts, from 'ctv.ts':
   No Program
   Stream #0:0[0x12]: Data: epg, start 43417.464456
 ```
-Le pid du flux de la 3ème vidéo est 0x3fd
+Le pid du flux de la 3ème vidéo est `0x3fd`
 
 2) Notre `scripts/setup.sh` démultiplexe déjà ce stream avec:
 ```
-mpeg2dec -t 0x3fd -o pgm ctv.ts
+./mpeg2dec/src/mpeg2dec -t 0x3fd -o pgm videos/ts/ctv.ts
 ```
+Encore une fois `progressive_frame` alterne entre 0 et 1, par contre `progressive_sequence` est correcte. Donc `uv run main.py encoded_images/ctv3 --progressive_frame 0` corrige les problèmes.
+
+3) Le jeu d'acteur est absolument incroyable mais quand les effets sur le gateau sont affichés et que l'on regarde frame par frame on a l'impression que la fille déplace d'avant en arrière une crèpe sur sa poele. En gros les images ne sont pas dans l'ordre, alors qu'il n'y a pas cet effet sur vlc. L'effet à du être rajouté en top field first alors que notre vidéo est en bottom field first, ce qui donne cet effet lorsque la séquence a été rajoutée.
+
+4) Avec la question C)1) on peut voir que l'id du premier flux vidéo est `0x3e9`
+
+5)
+```
+./mpeg2dec/src/mpeg2dec -t 0x3e9 -o pgm videos/ts/ctv.ts
+```
+Il ne faut pas trust `progressive_frame` ni `progressive_sequence`, car à vue d'oeil les images ne sont pas entrelassées. Donc `uv run main.py encoded_images/ctv1 --progressive_frame 1` a le bon rendu.
+
+6) `progressive_sequence` est faux, les frames sont techhniquement toutes progressives MAIS avec des particularitées:
+
+Si `top_field_first` = 0 et `repeat_first_field` = 0 et `progressive_frame` = 0 : on affiche l'image 1 fois (durée normale de 2 trames)
+Si `top_field_first` = 1 et `repeat_first_field` = 1 et `progressive_frame` = 0 : on affiche l'image 1.5 fois (3 trames)
+Si `top_field_first` = 0 et `repeat_first_field` = 0 et `progressive_frame` = 1 : on affiche l'image 1 fois (durée normale de 2 trames, en progressif)
+Si `top_field_first` = 0 et `repeat_first_field` = 1 et `progressive_frame` = 1 : on affiche l'image 2 fois (4 trames)
+Si `top_field_first` = 1 et `repeat_first_field` = 1 et `progressive_frame` = 1 : on affiche l'image 3 fois (6 trames)
+
+### D:
+
+1)
+
+2)
+
+3)
