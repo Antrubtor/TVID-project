@@ -36,4 +36,4 @@ def read_pgm(filename, byteorder=">"):
 
 
 def write_ppm(path, matrix):
-    imageio.imwrite(path, matrix, format="PPM-FI", flags=1)
+    imageio.imwrite(path, numpy.asarray(matrix, dtype=numpy.uint8))
