@@ -1,5 +1,7 @@
 import numpy as np
 
+BLOCK_SIZE = 8
+
 
 def clamp(v):
     return np.clip(np.rint(v), 0, 255).astype(np.uint8)
@@ -22,6 +24,17 @@ def interpolate_matrix(matrix, first):
     rows = np.arange(first, len(matrix) - 1, 2)
     rgb = clamp((float_matrix[rows - 1] + float_matrix[rows + 1]) / 2)
     matrix[rows] = rgb
+
+
+def bob(field, parity):
+    out = field.copy()
+    if parity == 0:
+        interpolate_matrix(out, 1)
+        out[-1] = out[-2]
+    else:
+        interpolate_matrix(out, 2)
+        out[0] = out[1]
+    return out
 
 
 def vec_to_decoded_vec(matrix, f_width, f_height, ys, hs):
@@ -58,9 +71,24 @@ def matrix_to_decoded_matrix(matrix, to_deinterlace):
             matrix, f_width, f_height, ys_bot, hs_bot
         )
 
-        bot_field_matrix[0] = bot_field_matrix[1]
-        interpolate_matrix(top_field_matrix, 1)
-        interpolate_matrix(bot_field_matrix, 2)
-        top_field_matrix[-1] = top_field_matrix[-2]
-
         return top_field_matrix, bot_field_matrix
+
+
+def adaptive(cur, parity, prev_same, prev_opp, threshold):
+    out = bob(cur, parity)
+    if prev_same is None or prev_opp is None:
+        return out
+
+    h, w = len(cur), len(cur[0])
+
+    for y in range((parity + 1) % 2, h, 2):
+        real = y + 1 if y + 1 < h else y - 1
+
+        for x in range(0, w, BLOCK_SIZE):
+            now = cur[real, x : x + BLOCK_SIZE].astype(np.int16)
+            before = prev_same[real, x : x + BLOCK_SIZE]
+
+            if np.abs(now - before).mean() <= threshold:
+                out[y, x : x + BLOCK_SIZE] = prev_opp[y, x : x + BLOCK_SIZE]
+
+    return out

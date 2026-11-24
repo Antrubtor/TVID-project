@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import pandas as pd
 
-from src.converter import matrix_to_decoded_matrix
+from src.converter import adaptive, bob, matrix_to_decoded_matrix
 from src.image import read_pgm, write_ppm
 
 DEFAULT_PACE = 25
@@ -42,6 +42,19 @@ def get_arguments():
         choices=[0, 1],
         help="give the wanted repeat_first_field",
     )
+    parser.add_argument(
+        "--deinterlace_mode",
+        type=str,
+        choices=["bob", "adaptive"],
+        default="bob",
+        help="give the deinterlacer mode",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=10,
+        help="threshold for the adaptive deinterlacer",
+    )
     return parser.parse_args()
 
 
@@ -67,6 +80,13 @@ def save_or_display_ppm(ppm_path_dir, name, matrix, chrono):
     return key == ord("q")
 
 
+def find_last(prev_images, parity):
+    for field, p in reversed(prev_images):
+        if p == parity:
+            return field
+    return None
+
+
 def main():
 
     args = get_arguments()
@@ -87,6 +107,8 @@ def main():
 
     # https://www.geeksforgeeks.org/python/time-perf_counter-function-in-python/
     chrono = time.perf_counter()
+
+    prev_images = []
 
     for pgm_path in sorted(pgm_path_dir.glob("*.pgm"), key=lambda p: int(p.stem)):
         print(f"Processing {pgm_path}...")
@@ -120,19 +142,41 @@ def main():
         matrix = read_pgm(pgm_path)
 
         if progressive_frame == 1:
+            prev_images.clear()
             decoded_matrix = matrix_to_decoded_matrix(matrix, False)
             images = [("", decoded_matrix)]
             duration = frame_duration_s(pace, frame_period)
         else:
-            top_field_matrix, bot_field_matrix = matrix_to_decoded_matrix(matrix, True)
+            top_not_inter, bot_not_inter = matrix_to_decoded_matrix(matrix, True)
             if top_field_first:
-                first, second = top_field_matrix, bot_field_matrix
+                first, second = top_not_inter, bot_not_inter
             else:
-                first, second = bot_field_matrix, top_field_matrix
+                first, second = bot_not_inter, top_not_inter
 
-            images = [("_first", first), ("_second", second)]
+            polarity = 0 if top_field_first else 1
+            fields = [
+                ("_first", first, polarity),
+                ("_second", second, (polarity + 1) % 2),
+            ]
             if repeat_first_field:
-                images.append(("_third", first))
+                fields.append(("_third", first, polarity))
+
+            images = []
+            for suffix, field, parity in fields:
+                if args.deinterlace_mode == "adaptive":
+                    image = adaptive(
+                        field,
+                        parity,
+                        find_last(prev_images, parity),
+                        find_last(prev_images, (parity + 1) % 2),
+                        args.threshold,
+                    )
+                else:
+                    image = bob(field, parity)
+                images.append((suffix, image))
+                prev_images.append((field, parity))
+                del prev_images[:-3]
+
             duration = frame_duration_s(pace, frame_period) / 2
 
         stop = False
