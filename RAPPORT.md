@@ -29,19 +29,24 @@ vlc -V xvideo videos/elementary/pendulum.m2v
 3) Voici le fichier `encoded_images/pendulum/0.pgm`
 ```
 P5 # cette ligne donne le type de la structure (c'est un magic number) et P5 indique que c'est un PGM
-720 720 # (witdh) (2/3 * height)
+720 720 # (witdh) (3/2 * height)
 255 # la valeur maximale pour encoder les couleurs (profondeur)
 BINAIRE # chaque pixel est codé par 1 ou 2 octets selon que la valeur maximale soit strictement inférieure (1 octet), ou bien supérieure ou égale à 256 (2 octets) // source: https://fr.wikipedia.org/wiki/Portable_pixmap
 ```
-Pour le sampling mode nous sommes en 4:2:0 (Y full res, U et V font la witdh/2)
+Pour le sampling mode nous sommes en 4:2:0 (Y full res, U et V font la width/2 et height/2)
 
 4)
+Les flags `progressive_frame`, `top_field_first`, `repeat_first_field` correspondent respectivement aux flags dans le code `PIC_FLAG_PROGRESSIVE_FRAME`, `PIC_FLAG_TOP_FIELD_FIRST`, `PIC_FLAG_REPEAT_FIRST_FIELD` qui sont définis dans `include/mpeg2.h`. On a donc rajouté les logs dans un fichier `CSV` pour chaque images dans `src/mpeg2dec.c` au moment de la fin du traitement de chaque images.
 
-5)
+5) L'une des premières version naïve (disponible [ici](https://github.com/Antrubtor/TVID-project/blob/17396d148d8f60ea6fd9c1c6ee8921330f19cde3/src/pgm_to_decoded_matrix.py)) fonctionnait (et fonctionne toujours pareil par principe) par :
+* une fonction qui faisait une lecture en binaire du headeur, ainsi que mettre toutes les valeurs de pixel de l'image non décodés dans une matrice.
+* une fonction qui permet de récupérer la valeur Y, U et V pour chaque pixels et en fait la conversion pour au final retourner une matrice décodée.
+* une fonction pour écrire l'image au format P3 de PPM car le plus simple à gérer.
+Pour faire l'application nous avons choisis d'utiliser Python pour sa simplicité, puis dans les versions futures nous avons utilisés Numpy car nous avions été confrontés à des problèmes d'optimisation...
 
-6)
+6) Pour ajouter des options nous avons utilisé le package `argparse`, et pour l'affichage en séquence nous avons utilisé le package `cv2`.
 
-7)
+7) Le flag `frame_period` correspond à un élément de la struct `mpeg2_sequence_s` étant elle même dans la struct `mpeg2_info_s`. Mais comme nous avions déjà choisi le format `CSV` nous l'avons log pour chaque frame même si la valeur est pour toute les frames de la vidéo.
 
 8)
 
