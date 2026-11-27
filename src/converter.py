@@ -80,15 +80,15 @@ def adaptive(cur, parity, prev_same, prev_opp, threshold):
         return out
 
     h, w = len(cur), len(cur[0])
+    y = np.arange((parity + 1) % 2, h, 2)
+    real = np.where(y + 1 < h, y + 1, y - 1)
 
-    for y in range((parity + 1) % 2, h, 2):
-        real = y + 1 if y + 1 < h else y - 1
+    now = cur[real].astype(np.int16)
+    before = prev_same[real]
 
-        for x in range(0, w, BLOCK_SIZE):
-            now = cur[real, x : x + BLOCK_SIZE].astype(np.int16)
-            before = prev_same[real, x : x + BLOCK_SIZE]
+    diff = np.abs(now - before).mean(axis=2)
+    zones = diff.reshape(len(y), -1, BLOCK_SIZE).mean(axis=2)
 
-            if np.abs(now - before).mean() <= threshold:
-                out[y, x : x + BLOCK_SIZE] = prev_opp[y, x : x + BLOCK_SIZE]
-
+    still = np.repeat(zones <= threshold, BLOCK_SIZE, axis=1)[:, :w]
+    out[y] = np.where(still[:, :, None], prev_opp[y], out[y])
     return out
